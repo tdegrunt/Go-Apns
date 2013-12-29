@@ -34,12 +34,16 @@ type Apn struct {
 
 // New Apn with cert_filename and key_filename.
 func New(cert_filename, key_filename, server string, timeout time.Duration) (*Apn, error) {
-	echan := make(chan error)
-
 	cert, err := tls.LoadX509KeyPair(cert_filename, key_filename)
 	if err != nil {
 		return nil, err
 	}
+
+	return NewWithCertificate(cert, server, timeout)
+}
+
+func NewWithCertificate(cert tls.Certificate, server string, timeout time.Duration) (*Apn, error) {
+	echan := make(chan error)
 
 	certificate := []tls.Certificate{cert}
 	conf := &tls.Config{
@@ -56,7 +60,7 @@ func New(cert_filename, key_filename, server string, timeout time.Duration) (*Ap
 	}
 
 	go sendLoop(ret)
-	return ret, err
+	return ret, nil
 }
 
 func (a *Apn) GetErrorChan() <-chan error {
